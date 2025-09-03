@@ -1,3 +1,6 @@
+
+
+
 /* 页脚与头图透明 */
 #footer {
   background: transparent !important;
@@ -28,7 +31,20 @@
   position: absolute !important;
   width: fit-content !important;
   left: 50% !important;
-  transform: translateX(-50%) !important;
+  transform: translate(-50%, -12px) !important;
+  font-size: 26px !important;
+}
+#nav .menus_items .menus_item {
+  margin: 0 8px !important;
+  color: rgb(70, 212, 255) !important;
+}
+
+/* 站点名字体大小 */
+#nav .site-name {
+  font-size: 28px !important;
+  position: relative;
+  top: 12px;
+  color: rgb(255, 195, 255);
 }
 /* 子菜单横向展示 */
 #nav .menus_items .menus_item:hover .menus_item_child {
