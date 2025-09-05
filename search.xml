@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>NAT1环境下的Linux端口开放</title>
+      <link href="/2025/09/05/NAT1%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84Linux%E7%AB%AF%E5%8F%A3%E5%BC%80%E6%94%BE/"/>
+      <url>/2025/09/05/NAT1%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84Linux%E7%AB%AF%E5%8F%A3%E5%BC%80%E6%94%BE/</url>
+      
+        <content type="html"><![CDATA[<h1 id="软硬件环境"><a href="#软硬件环境" class="headerlink" title="软硬件环境"></a>软硬件环境</h1><h2 id="设备"><a href="#设备" class="headerlink" title="设备"></a>设备</h2><p>CPU(s)          12 x Intel(R) Xeon(R) CPU E5-2620 0 @ 2.00GHz<br>内核版本         Linux 5.15.102-1-pve #1 SMP PVE 5.15.102-1 (2023-03-14T13:48Z)<br>PVE管理器版本    pve-manager&#x2F;7.4-3&#x2F;9002ab8a<br>网络环境         河北联通 <a href="https://www.ikuai8.com/">爱快路由</a>拨号<br>操作系统         Ubuntu22.04 CT容器<br>分配             内存8G swap2G 6核心</p><h2 id="前期准备"><a href="#前期准备" class="headerlink" title="前期准备"></a>前期准备</h2><h3 id="NAT1"><a href="#NAT1" class="headerlink" title="NAT1"></a>NAT1</h3><p>网络环境必须为NAT1类型，推荐使用<a href="https://mao.fan/mynat">猫点饭</a>查看<br><img src="https://i.postimg.cc/sDKK4Gwt/QQ20250906-000426.jpg" alt="NAT1"></p><details style="text-align:left;">  <summary>NAT1教程(爱快路由器)【改桥接有风险】</summary>  <h4>1.</h4>使用电脑直连光猫，进入超级管理员页面（联通的是http://192.168.1.1/cu.html）<br>  <h4>2.</h4>超级管理员页面下，依次点击：状态->网络侧信息->IPv4连接信息，记录下PPPoE模式所有内容，例如：“2_INTERNET_R_VID10”。一定要记录下账号！！！联通的密码可以通过手机营业厅更改。<br>  <h4>3.</h4>在“连接名称”处选择“新建WAN连接”，“模式”处选择“Bridge”，端口绑定选择“LAN1”；<br>  注：第2、3步非常重要，记得备份，第三步的新建连接可以在原有的上面更改。<br>  <h4>4.</h4>使用路由器直连光猫的LAN1口(上面选的)，打开路由器页面，此处以爱快示例，填入PPPoE账号和密码<br>  <img src='https://i.postimg.cc/kGRsJTx8/QQ20250906-001712.jpg' alt='PPPoE'><br>  <h4>5.</h4>此时成功使用路由器拨号，依次打开：系统设置->基础设置，调整上网模式为NAT1<br>  风险提示:  此模式下网络安全风险较高，请谨慎选择</details><h3 id="穿透"><a href="#穿透" class="headerlink" title="穿透"></a>穿透</h3><p> <a href="https://github.com/MikeWang000000/Natter">穿透软件</a> ——-<br>来自github用户<a href="https://github.com/MikeWang000000">Mike Wang</a></p><h2 id="实际应用"><a href="#实际应用" class="headerlink" title="实际应用"></a>实际应用</h2><p>本次实际应用为我的<a href="jump.hsotrany80.com">网盘</a></p><h1 id="教程实现"><a href="#教程实现" class="headerlink" title="教程实现"></a>教程实现</h1><p>本次使用Natter软件内的nginx-cloudflare<br>进入文件目录,给所有文件权限</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> Natter-master/natter-docker/nginx-cloudflare/</span><br><span class="line"><span class="built_in">chmod</span> 777 *</span><br></pre></td></tr></table></figure><p>使用vim修改内容 cf-redir.py<br>cf_redirect_to_https 值保持不变(HTTPS协议需要支持)<br>cf_redirect_host 值修改为您的“跳转域名”。<br>cf_direct_host 值修改为您的“直连域名”。<br>例如，跳转域名是jump.xxx.com,直连域名是get.xxx.com,在网站或其他地方只使用jump的域名,点击后自动跳转到get的域名上，直连域名是实际域名。<br>cf_auth_email 值修改为您的 CloudFlare 邮箱。<br>cf_auth_key 值修改为您的 CloudFlare API Key。获取方式：<br>    登录 CloudFlare<br>    进入 <a href="https://dash.cloudflare.com/profile/api-tokens">https://dash.cloudflare.com/profile/api-tokens</a><br>    点击 Global API Key 右侧「查看」按钮</p><p>vim使用i开始输入点击esc后输入:wq保存并退出。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim cf-redir.py</span><br></pre></td></tr></table></figure><p>使用vim修改内容 docker-compose.yml<br>第三行的5244改为本机需要映射的端口号<br>将宿主机的8080端口映射到容器的80端口<br>倒数第五行的端口号改为xxx:第三行的端口号（xxx我的使用过程中没发现有任何占用）</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">services:</span><br><span class="line">  natter-nginx-cf:</span><br><span class="line">    <span class="built_in">command</span>: -e /opt/cf-redir.py -p 5244</span><br><span class="line">    volumes:</span><br><span class="line">      - ./cf-redir.py:/opt/cf-redir.py</span><br><span class="line">    environment:</span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">    network_mode: host</span><br><span class="line">    image: nattertool/natter</span><br><span class="line">    restart: always</span><br><span class="line">    depends_on:</span><br><span class="line">      - nginx</span><br><span class="line"></span><br><span class="line">  nginx:</span><br><span class="line">    volumes:</span><br><span class="line">      - ./html:/usr/share/nginx/html</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&quot;443:5244&quot;</span></span><br><span class="line">    environment:</span><br><span class="line">      - TZ=Asia/Shanghai</span><br><span class="line">    image: nginx</span><br><span class="line">    restart: always</span><br></pre></td></tr></table></figure><p>输入命令docker compose up运行,出现下图OPEN样式即为成功！(码住的地方是ip和域名)<br><img src="https://i.postimg.cc/C5pn30s3/QQ20250906-004545.jpg" alt="NAT"><br>此时通过跳转域名可直接访问 网站:端口</p><h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>这次任务主要是为了完成我的网盘的ipv4直连访问，结果从晚上8点干1点了，踩了好几个坑，给我网盘还重装了东西全没了.<br>┭┮﹏┭┮<br>不过还是要感谢github的大神！<br>第一次写这种东西，有问题的希望提一提建议之类的…….</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title></title>
       <link href="/2025/09/03/%E6%B5%8B%E8%AF%951/"/>
       <url>/2025/09/03/%E6%B5%8B%E8%AF%951/</url>
@@ -44,6 +57,17 @@
     
     
     <entry>
+      <title>Tags</title>
+      <link href="/tags/index.html"/>
+      <url>/tags/index.html</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>About</title>
       <link href="/about/index.html"/>
       <url>/about/index.html</url>
@@ -66,11 +90,11 @@
     
     
     <entry>
-      <title>Tags</title>
-      <link href="/tags/index.html"/>
-      <url>/tags/index.html</url>
+      <title>Link--奇妙链接</title>
+      <link href="/link/index.html"/>
+      <url>/link/index.html</url>
       
-        <content type="html"><![CDATA[]]></content>
+        <content type="html"><![CDATA[<details style="text-align:center;">  <summary>更多链接</summary>  <h2>Link：<a href="https://osu.ppy.sh" target="_blank">OSU!</a>&nbsp<a href="https://osu.ppy.sh/u/13189999">ME!</a></h2><br>  <img src="https://i.postimg.cc/kXpp3SrS/link-osu-index.png" alt="OSU!"><br>  <a href="https://www.hebei.gov.cn/" target="_blank">河北省人民政府</a>  <a href="http://slt.hebei.gov.cn/" target="_blank">河北省水利局</a>  <a href="http://www.hebeea.edu.cn/" target="_blank">河北省教育考试院</a>  <a href="http://www.hbzwfw.gov.cn/" target="_blank">河北省政务服务网</a>  <a href="https://yjgl.hebei.gov.cn/portal/" target="_blank">河北省应急管理厅</a>  <a href="https://hbepb.hebei.gov.cn/" target="_blank">河北省生态环境厅</a><p><a href="https://www.hbrd.gov.cn/index.shtml" target="_blank">河北省人大常务委员会</a></p></details>]]></content>
       
     </entry>
     
@@ -82,17 +106,6 @@
       <url>/cloud/index.html</url>
       
         <content type="html"><![CDATA[<h1 id="这里是我的网盘"><a href="#这里是我的网盘" class="headerlink" title="这里是我的网盘"></a>这里是我的网盘</h1><p>网盘部署本地服务器</p><p><img src="https://i.postimg.cc/NG2CcM42/cloud-login.png" alt="CLOUD"></p><h2 id="Link：直链-ipv4"><a href="#Link：直链-ipv4" class="headerlink" title="Link：直链(ipv4)"></a>Link：<a href="https://jump.hsotrany80.com/">直链(ipv4)</a></h2><h2 id="Link：直链-ipv6"><a href="#Link：直链-ipv6" class="headerlink" title="Link：直链(ipv6)"></a>Link：<a href="http://ct.hsotrany80.com/">直链(ipv6)</a></h2><h2 id="Link：CloudFlare代理"><a href="#Link：CloudFlare代理" class="headerlink" title="Link：CloudFlare代理"></a>Link：<a href="https://ctw.hsotrany80.com/">CloudFlare代理</a></h2>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Link--奇妙链接</title>
-      <link href="/link/index.html"/>
-      <url>/link/index.html</url>
-      
-        <content type="html"><![CDATA[<details style="text-align:center;">  <summary>更多链接</summary>  <h2>Link：<a href="https://osu.ppy.sh" target="_blank">OSU!</a>&nbsp<a href="https://osu.ppy.sh/u/13189999">ME!</a></h2><br>  <img src="https://i.postimg.cc/kXpp3SrS/link-osu-index.png" alt="OSU!"><br>  <a href="https://www.hebei.gov.cn/" target="_blank">河北省人民政府</a>  <a href="http://slt.hebei.gov.cn/" target="_blank">河北省水利局</a>  <a href="http://www.hebeea.edu.cn/" target="_blank">河北省教育考试院</a>  <a href="http://www.hbzwfw.gov.cn/" target="_blank">河北省政务服务网</a>  <a href="https://yjgl.hebei.gov.cn/portal/" target="_blank">河北省应急管理厅</a>  <a href="https://hbepb.hebei.gov.cn/" target="_blank">河北省生态环境厅</a><p><a href="https://www.hbrd.gov.cn/index.shtml" target="_blank">河北省人大常务委员会</a></p></details>]]></content>
       
     </entry>
     
